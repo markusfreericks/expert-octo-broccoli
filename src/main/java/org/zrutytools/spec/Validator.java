@@ -1,26 +1,13 @@
 package org.zrutytools.spec;
 
 import java.util.List;
-import java.util.Map;
 
-public class Validator {
+/**
+ * tests an object against one or more rules. returns null or a Problem
+ */
+@FunctionalInterface
+public interface Validator {
 
-	ParsedSpec spec;
-	
-	public Validator(ParsedSpec parsedSpec) {
-		this.spec = parsedSpec;
-	}
-
-	
-	public ValidationResult validate(Object ob) {
-		ValidationResult r = new ValidationResult();
-		
-		Problem problem = spec.getRootDocInfo().getProblem(ob);
-		if(problem != null){
-			r.add(problem);
-		}
-		
-		return r;
-	}
+  List<Problem> validate(Object ob);
 
 }
