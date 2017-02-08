@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
  * a Classification defines a name for a json object
  * a Rule defines some property a json object must have
  *
- * @author mfx
  */
 public class Parser {
 
@@ -57,7 +56,8 @@ public class Parser {
     }
     // every line must match exactly one method
     if (matchingMethods.isEmpty()) {
-      throw new IllegalArgumentException("line " + lineNo + " does not match any method: `" + cleaned + "`");
+      String anno = "@Syntax(\"" + cleaned.replaceAll("[\"]", "\\\"") + "\")";
+      throw new IllegalArgumentException("line " + lineNo + " does not match any method. Missing annotation:\n" + anno);
     }
     if (matchingMethods.size() > 1) {
       throw new IllegalArgumentException("line " + lineNo + " matches " + matchingMethods.size() + " methods: " + matchingMethods);
@@ -73,8 +73,13 @@ public class Parser {
    */
   private String cleanLine(String line) {
     String r = line.replaceAll("\\s+", " ");
+    // in-line kommentar (at the end)
+    r = r.replaceAll(" \\(.*\\)$", "");
+    // space in front
     r = r.replaceAll("^ ", "");
+    // space in theend
     r = r.replaceAll(" $", "");
+    // dot at the end.
     r = r.replaceAll("\\.$", "");
     return r;
   }

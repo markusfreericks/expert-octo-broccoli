@@ -9,8 +9,10 @@ import java.util.List;
 public class ValidationResult {
 
   private List<Problem> problems = new ArrayList<>();
+  private ParsedSpec spec;
 
-  public ValidationResult(List<Problem> problems) {
+  public ValidationResult(ParsedSpec spec, List<Problem> problems) {
+    this.spec = spec;
     this.problems = problems;
   }
 
@@ -30,5 +32,6 @@ public class ValidationResult {
     }
     return sb.toString();
   }
+
 
 }

@@ -1,5 +1,8 @@
 package org.zrutytools.spec;
 
+import org.zrutytools.spec.types.NodeType;
+import org.zrutytools.spec.types.Type;
+
 /**
  * subclass this for your own syntax
  */
@@ -66,8 +69,11 @@ public abstract class EmptySyntax {
     spec.setRootType(nodeType);
   }
 
-  protected void addMandatoryField(String fieldName, NodeType t, Type s) {
+  protected void addMandatoryField(NodeType t, String fieldName, Type... s) {
     t.addMandatoryField(unq(fieldName), s);
   }
 
+  protected void addOptionalField(NodeType t, String fieldName, Type... s) {
+    t.addOptionalField(unq(fieldName), s);
+  }
 }

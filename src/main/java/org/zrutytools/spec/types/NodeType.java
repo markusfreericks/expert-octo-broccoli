@@ -1,12 +1,36 @@
-package org.zrutytools.spec;
+package org.zrutytools.spec.types;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.zrutytools.spec.ObjectContext;
+import org.zrutytools.spec.Problem;
+
 public class NodeType implements Type {
+
+  static class ListMap<T,V> extends HashMap<T, List<V>> {
+
+    // access to a map of key->list
+
+    // unchecked: the compiler has problems with
+    //   List<V> get(T type)
+    //
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<V> get(Object type) {
+      List<V> list = super.get(type);
+      if (list == null) {
+        list = new ArrayList<>();
+        super.put((T) type, list);
+      }
+      return list;
+    }
+
+  }
 
   private String typeId;
 
@@ -43,27 +67,27 @@ public class NodeType implements Type {
   }
 
   @Override
-  public List<Problem> validate(Object x) {
+  public List<Problem> validate(ObjectContext ctx) {
     List<Problem> rs = new ArrayList<>();
-
+    Object x = ctx.getObject();
     if (x == null) {
       if (!nullAllowed) {
-        rs.add(new Problem(Problem.Kind.NULL_PROPERTY, x, typeId));
+        rs.add(new Problem(Problem.Kind.NULL_PROPERTY, ctx, typeId));
       }
       return rs;
     }
 
     if (x instanceof Map) {
       Map<?, ?> map = (Map<?, ?>) x;
-      rs.addAll(validateMandantories(map));
-      rs.addAll(validateOptionals(map));
+      rs.addAll(validateMandantories(ctx, map));
+      rs.addAll(validateOptionals(ctx, map));
     } else {
-      rs.add(new Problem(Problem.Kind.UNEXPECTED_OBJECT_TYPE, x, typeId));
+      rs.add(new Problem(Problem.Kind.UNEXPECTED_OBJECT_TYPE, ctx, typeId + " expected Map"));
     }
     return rs;
   }
 
-  private Collection<? extends Problem> validateOptionals(Map<?, ?> map) {
+  private Collection<? extends Problem> validateOptionals(ObjectContext ctx, Map<?, ?> map) {
     List<Problem> rs = new ArrayList<>();
 
     for (Entry<String, List<Type>> e : optionalFields.entrySet()) {
@@ -71,7 +95,7 @@ public class NodeType implements Type {
       if (map.containsKey(fieldName)) {
         Object object = map.get(fieldName);
         for (Type t : e.getValue()) {
-          rs.addAll(t.validate(object));
+          rs.addAll(t.validate(ctx.element(fieldName, t, object)));
         }
       }
     }
@@ -79,7 +103,7 @@ public class NodeType implements Type {
     return rs;
   }
 
-  private List<Problem> validateMandantories(Map<?, ?> map) {
+  private List<Problem> validateMandantories(ObjectContext ctx, Map<?, ?> map) {
     List<Problem> rs = new ArrayList<>();
 
     for (Entry<String, List<Type>> e : mandatoryFields.entrySet()) {
@@ -87,7 +111,7 @@ public class NodeType implements Type {
       if (map.containsKey(fieldName)) {
         Object object = map.get(fieldName);
         for (Type t : e.getValue()) {
-          List<Problem> tProblems = t.validate(object);
+          List<Problem> tProblems = t.validate(ctx.element(fieldName, t, object));
           if(! tProblems.isEmpty()) {
             rs.addAll(tProblems);
             // beim ersten problem eines feldes stoppen; folgefehler bringen nichts
@@ -95,18 +119,18 @@ public class NodeType implements Type {
           }
         }
       } else {
-        rs.add(new Problem(Problem.Kind.MISSING_PROPERTY, map, "missing mandatory field " + fieldName));
+        rs.add(new Problem(Problem.Kind.MISSING_PROPERTY, ctx, "missing mandatory field \"" + fieldName + "\" found " + map.keySet()));
       }
     }
 
     return rs;
   }
 
-  public ListMap<String, Type> getMandatoryFields() {
+  public Map<String, List<Type>> getMandatoryFields() {
     return mandatoryFields;
   }
 
-  public ListMap<String, Type> getOptionalFields() {
+  public Map<String, List<Type>> getOptionalFields() {
     return optionalFields;
   }
 

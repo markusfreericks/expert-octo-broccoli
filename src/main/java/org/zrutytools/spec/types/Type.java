@@ -1,7 +1,10 @@
-package org.zrutytools.spec;
+package org.zrutytools.spec.types;
 
 import java.util.List;
 import java.util.Map;
+
+import org.zrutytools.spec.ObjectContext;
+import org.zrutytools.spec.Problem;
 
 public interface Type {
 
@@ -11,7 +14,7 @@ public interface Type {
    * @param x
    * @return list of problems, or empty list
    */
-  List<Problem> validate(Object x);
+  List<Problem> validate(ObjectContext ctx);
 
   /**
    * type id

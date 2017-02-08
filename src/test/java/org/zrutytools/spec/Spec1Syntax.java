@@ -1,5 +1,10 @@
 package org.zrutytools.spec;
 
+import org.zrutytools.spec.types.ListType;
+import org.zrutytools.spec.types.NodeType;
+import org.zrutytools.spec.types.PredicateType;
+import org.zrutytools.spec.types.PrimitiveType;
+
 public class Spec1Syntax extends EmptySyntax {
   /**
    *
@@ -18,7 +23,7 @@ public class Spec1Syntax extends EmptySyntax {
     NodeType t = lookupType(objectType);
     NodeType s = introduceType(subObjectName);
     ListType listOfT = new ListType(s);
-    addMandatoryField(fieldName, t, listOfT);
+    addMandatoryField(t, fieldName, listOfT);
   }
 
   /*

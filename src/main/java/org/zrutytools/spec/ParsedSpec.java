@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.zrutytools.spec.types.NodeType;
+import org.zrutytools.spec.types.Type;
+
 /**
  *
  * specification of a json object. can be used to test any tree build of maps, lists, numbers, strings, and booleans.
@@ -46,12 +49,12 @@ public class ParsedSpec {
   public ValidationResult validateDocument(Object ob) {
     List<Problem> rs;
     if (rootType != null) {
-      rs = rootType.validate(ob);
+      rs = rootType.validate(new ObjectContext("", rootType, ob, null));
     } else {
       rs = Collections.emptyList();
     }
 
-    return new ValidationResult(rs);
+    return new ValidationResult(this, rs);
   }
 
   @Override

@@ -1,7 +1,11 @@
-package org.zrutytools.spec;
+package org.zrutytools.spec.types;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.zrutytools.spec.ObjectContext;
+import org.zrutytools.spec.Problem;
+import org.zrutytools.spec.Problem.Kind;
 
 public class ListType implements Type {
 
@@ -27,12 +31,13 @@ public class ListType implements Type {
   }
 
   @Override
-  public List<Problem> validate(Object x) {
+  public List<Problem> validate(ObjectContext ctx) {
     List<Problem> rs = new ArrayList<>();
+    Object x = ctx.getObject();
 
     if (x == null) {
       if (!nullAllowed) {
-        rs.add(new Problem(Problem.Kind.NULL_PROPERTY, x, getId()));
+        rs.add(new Problem(Problem.Kind.NULL_PROPERTY, ctx, getId()));
       }
       return rs;
     }
@@ -41,16 +46,17 @@ public class ListType implements Type {
       List<?> list = (List) x;
       if(list.size() < minSize) {
         if(minSize == 1) {
-          rs.add(new Problem(Problem.Kind.EMPTY_LIST, x, getId() + " must not be empty"));
+          rs.add(new Problem(Problem.Kind.EMPTY_LIST, ctx, getId() + " must not be empty"));
         } else {
-          rs.add(new Problem(Problem.Kind.EMPTY_LIST, x, getId() + " must have at least " + minSize + " elements (has " + list.size() + ")"));
+          rs.add(new Problem(Problem.Kind.EMPTY_LIST, ctx, getId() + " must have at least " + minSize + " elements (has " + list.size() + ")"));
         }
       }
+      int n=0;
       for(Object ob : list) {
-        rs.addAll(nodeType.validate(ob));
+        rs.addAll(nodeType.validate(ctx.element(n++, nodeType, ob)));
       }
     } else {
-      rs.add(new Problem(Problem.Kind.UNEXPECTED_OBJECT_TYPE, x, getId()));
+      rs.add(new Problem(Problem.Kind.UNEXPECTED_OBJECT_TYPE, ctx, getId() + " expected List"));
     }
 
     return rs;
