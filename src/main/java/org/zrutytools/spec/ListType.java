@@ -45,12 +45,12 @@ public class ListType implements Type {
         } else {
           rs.add(new Problem(Problem.Kind.EMPTY_LIST, x, getId() + " must have at least " + minSize + " elements (has " + list.size() + ")"));
         }
-        for(Object ob : list) {
-          rs.addAll(nodeType.validate(ob));
-        }
+      }
+      for(Object ob : list) {
+        rs.addAll(nodeType.validate(ob));
       }
     } else {
-      rs.add(new Problem(Problem.Kind.UNEXPECTED_TYPE, x, getId()));
+      rs.add(new Problem(Problem.Kind.UNEXPECTED_OBJECT_TYPE, x, getId()));
     }
 
     return rs;

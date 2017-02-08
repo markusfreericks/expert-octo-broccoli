@@ -57,43 +57,68 @@ public class ParserTest {
     ValidationResult vr;
 
     vr = spec1.validateDocument(null);
-    expectProblem("falscher typ: null", vr);
+    expectProblem("wrong type: null", vr);
 
     vr = spec1.validateDocument(42);
-    expectProblem("falscher typ: number", vr);
+    expectProblem("wrong type: number", vr);
 
     vr = spec1.validateDocument(new ArrayList<>());
-    expectProblem("falscher typ: List", vr);
+    expectProblem("wrong type: List", vr);
 
   }
 
   private void expectProblem(String what, ValidationResult vr) {
     System.out.println("expect problem: " + what);
     System.out.println("found: " + vr);
-    if(! vr.hasProblems()) {
+    if (!vr.hasProblems()) {
       fail("expected problem: " + what);
     }
   }
 
   @Test
-  public void testContentOfRootObject() {
+  public void testFullSyntax() {
 
     Map<String, Object> doc = new HashMap<>();
     List<Object> nodes = new ArrayList<>();
 
     ValidationResult vr;
 
-    // richtiger typ: object. fehlendes feld: "list"
+    // an empty object has no list
     vr = spec1.validateDocument(doc);
-    expectProblem("fehlendes feld: list", vr);
+    expectProblem("missing field: list", vr);
 
     doc.put("list", nodes);
 
-    // sollte richtig sein
+    // an empty list is sufficient
     vr = spec1.validateDocument(doc);
-    expectProblem("es fehlt ein list element", vr);
+    assertFalse("got problem "+ vr, vr.hasProblems());
 
+    Map<String, Object> node = new HashMap<>();
+    nodes.add(node);
+
+    // the node has no id
+    vr = spec1.validateDocument(doc);
+    expectProblem("id is missing", vr);
+
+    // wrong id
+    node.put("id", null);
+    vr = spec1.validateDocument(doc);
+    expectProblem("id is null", vr);
+
+    // wrong id
+    node.put("id", 42);
+    vr = spec1.validateDocument(doc);
+    expectProblem("id is not a string", vr);
+
+    // wrong id
+    node.put("id", "");
+    vr = spec1.validateDocument(doc);
+    expectProblem("id is empty", vr);
+
+    // ok id
+    node.put("id", "some id");
+    vr = spec1.validateDocument(doc);
+    assertFalse(vr.hasProblems());
   }
-
 
 }

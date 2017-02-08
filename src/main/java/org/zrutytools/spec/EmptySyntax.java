@@ -62,11 +62,11 @@ public abstract class EmptySyntax {
     return id.replace("\"", "");
   }
 
-  protected void setRootType(NodeType nodeType) {
+  protected void setRootType(Type nodeType) {
     spec.setRootType(nodeType);
   }
 
-  protected void addMandatoryField(String fieldName, NodeType t, NodeType s) {
+  protected void addMandatoryField(String fieldName, NodeType t, Type s) {
     t.addMandatoryField(unq(fieldName), s);
   }
 

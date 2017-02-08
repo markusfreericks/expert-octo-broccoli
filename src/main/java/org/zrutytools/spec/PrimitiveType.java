@@ -12,10 +12,10 @@ public class PrimitiveType implements Type {
 
   @Override
   public List<Problem> validate(Object x) {
-    if (expectedClass.isInstance(x)) {
+    if (x != null && expectedClass.isInstance(x)) {
       return Collections.emptyList();
     }
-    return Collections.singletonList(new Problem(Problem.Kind.UNEXPECTED_TYPE, x, "epected " + expectedClass.getSimpleName()));
+    return Collections.singletonList(new Problem(Problem.Kind.UNEXPECTED_OBJECT_TYPE, x, "epected " + expectedClass.getSimpleName()));
   }
 
   public PrimitiveType(Class<?> expectedClass) {

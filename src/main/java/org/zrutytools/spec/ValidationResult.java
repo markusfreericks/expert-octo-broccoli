@@ -25,16 +25,7 @@ public class ValidationResult {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     for (Problem p : problems) {
-      sb.append(p.getError());
-      sb.append(" caused by:" );
-      Object ob = p.getOb();
-      if(ob == null) {
-        sb.append(ob);
-      } else {
-        sb.append(ob.getClass().getSimpleName());
-        sb.append(" ");
-        sb.append(ob);
-      }
+      sb.append(p);
       sb.append("\n");
     }
     return sb.toString();

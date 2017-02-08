@@ -28,12 +28,18 @@ public class NodeType implements Type {
     this.nullAllowed = nullAllowed;
   }
 
-  public void addMandatoryField(String id, Type type) {
-    mandatoryFields.get(id).add(type);
+  public void addMandatoryField(String id, Type... type) {
+    List<Type> types = mandatoryFields.get(id);
+    for (Type t : type) {
+      types.add(t);
+    }
   }
 
-  public void addOptionalField(String id, Type type) {
-    optionalFields.get(id).add(type);
+  public void addOptionalField(String id, Type... type) {
+    List<Type> types = optionalFields.get(id);
+    for (Type t : type) {
+      types.add(t);
+    }
   }
 
   @Override
@@ -52,7 +58,7 @@ public class NodeType implements Type {
       rs.addAll(validateMandantories(map));
       rs.addAll(validateOptionals(map));
     } else {
-      rs.add(new Problem(Problem.Kind.UNEXPECTED_TYPE, x, typeId));
+      rs.add(new Problem(Problem.Kind.UNEXPECTED_OBJECT_TYPE, x, typeId));
     }
     return rs;
   }
@@ -62,7 +68,7 @@ public class NodeType implements Type {
 
     for (Entry<String, List<Type>> e : optionalFields.entrySet()) {
       String fieldName = e.getKey();
-      if (map.containsValue(fieldName)) {
+      if (map.containsKey(fieldName)) {
         Object object = map.get(fieldName);
         for (Type t : e.getValue()) {
           rs.addAll(t.validate(object));
@@ -78,10 +84,15 @@ public class NodeType implements Type {
 
     for (Entry<String, List<Type>> e : mandatoryFields.entrySet()) {
       String fieldName = e.getKey();
-      if (map.containsValue(fieldName)) {
+      if (map.containsKey(fieldName)) {
         Object object = map.get(fieldName);
         for (Type t : e.getValue()) {
-          rs.addAll(t.validate(object));
+          List<Problem> tProblems = t.validate(object);
+          if(! tProblems.isEmpty()) {
+            rs.addAll(tProblems);
+            // beim ersten problem eines feldes stoppen; folgefehler bringen nichts
+            break;
+          }
         }
       } else {
         rs.add(new Problem(Problem.Kind.MISSING_PROPERTY, map, "missing mandatory field " + fieldName));
@@ -94,6 +105,7 @@ public class NodeType implements Type {
   public ListMap<String, Type> getMandatoryFields() {
     return mandatoryFields;
   }
+
   public ListMap<String, Type> getOptionalFields() {
     return optionalFields;
   }
