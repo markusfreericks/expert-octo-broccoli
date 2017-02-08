@@ -1,7 +1,6 @@
 # an example for a specification document
 
-the document contains an object called "the result".
-the result MUST contain a field "list" that contains a list of "node" elements.
-a node MUST contain a field "id" that contains a unique "node id" string.
-
+the document contains an object called "result"
+the result MUST contain a field "list" that contains a list of node elements
+a node MUST contain a nonempty field "id"
 

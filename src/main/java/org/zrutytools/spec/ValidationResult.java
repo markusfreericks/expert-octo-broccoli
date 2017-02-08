@@ -8,25 +8,36 @@ import java.util.List;
  */
 public class ValidationResult {
 
-	List<Problem> problems = new ArrayList<>();
+  private List<Problem> problems = new ArrayList<>();
 
-	public boolean isOK() {
-	  return problems.isEmpty();
-	}
+  public ValidationResult(List<Problem> problems) {
+    this.problems = problems;
+  }
 
-	public boolean hasProblems(){
-		return ! problems.isEmpty();
-	}
+  public boolean isOK() {
+    return problems.isEmpty();
+  }
 
-	public String toString(){
-		StringBuilder sb = new StringBuilder();
-		for(Problem p : problems){
-			sb.append(p.getError());
-			sb.append("\t");
-			sb.append(p.getError());
-			sb.append("\n");
-		}
-		return sb.toString();
-	}
+  public boolean hasProblems() {
+    return !problems.isEmpty();
+  }
+
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for (Problem p : problems) {
+      sb.append(p.getError());
+      sb.append(" caused by:" );
+      Object ob = p.getOb();
+      if(ob == null) {
+        sb.append(ob);
+      } else {
+        sb.append(ob.getClass().getSimpleName());
+        sb.append(" ");
+        sb.append(ob);
+      }
+      sb.append("\n");
+    }
+    return sb.toString();
+  }
 
 }

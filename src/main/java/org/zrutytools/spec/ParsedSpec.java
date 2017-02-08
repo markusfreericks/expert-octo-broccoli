@@ -1,10 +1,11 @@
 package org.zrutytools.spec;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  *
@@ -19,62 +20,76 @@ import java.util.Map;
  */
 public class ParsedSpec {
 
-  private List<String> buildinTypes = Arrays.asList(Types.TYPE_STRING, Types.TYPE_OBJECT, Types.TYPE_NUMBER, Types.TYPE_BOOLEAN, Types.TYPE_NULL);
-  private List<String> declaredTypes = new ArrayList<>();
+  private Map<String, NodeType> nodeTypes = new HashMap<>();
+  private Type rootType;
 
-  private Map<String, List<Validator>> validators = new HashMap<>();
+  // get, create if missing
+  public NodeType getNodeType(String id) {
 
-  private RootDocumentInfo rootDocInfo;
-
-  public List<String> getTypes() {
-    List<String> rs = new ArrayList<>();
-    rs.addAll(buildinTypes);
-    rs.addAll(declaredTypes);
-    return rs;
-  }
-
-  // access to a map of key->list
-  public static <T,V> List<V> getOrCreate(Map<T, List<V>> map, T type) {
-    List<V> list = map.get(type);
-    if (list == null) {
-      list = new ArrayList<>();
-      map.put(type, list);
-    }
-    return list;
-  }
-
-  /**
-   * use the type predicates to detect a type
-   *
-   * @param object
-   * @return
-   */
-  public List<String> getTypes(Map<Object, Object> object) {
-    List<String> rs = new ArrayList<>();
-    rs.add(Types.TYPE_OBJECT);
-    if (object == null) {
-      rs.add(Types.TYPE_NULL);
-    } else {
-
-    }
-    return rs;
-  }
-
-  public void addValidatorForType(String type, Validator x) {
-    List<Validator> list = getOrCreate(validators, type);
-    list.add(x);
-  }
-
-
-  public ValidationResult validate(Object ob) {
-    ValidationResult r = new ValidationResult();
-
-    List<Validator> vs = getOrCreate(validators, Types.TYPE_DOCUMENT);
-    for(Validator v : vs) {
-      r.problems.addAll(v.validate(ob));
+    NodeType r = nodeTypes.get(id);
+    if (r == null) {
+      r = new NodeType(id);
+      nodeTypes.put(id, r);
     }
 
     return r;
+  }
+
+  public boolean knowsType(String id) {
+    return nodeTypes.containsKey(id);
+  }
+
+  public void setRootType(Type rootType) {
+    this.rootType = rootType;
+  }
+
+  public ValidationResult validateDocument(Object ob) {
+    List<Problem> rs;
+    if (rootType != null) {
+      rs = rootType.validate(ob);
+    } else {
+      rs = Collections.emptyList();
+    }
+
+    return new ValidationResult(rs);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+
+    if (rootType != null) {
+      sb.append("the document is of type " + q(rootType.getId()));
+      sb.append("\n");
+    }
+
+    List<String> typeNames = new ArrayList<>(nodeTypes.keySet());
+    Collections.sort(typeNames);
+    for (String typeName : typeNames) {
+      NodeType type = nodeTypes.get(typeName);
+      sb.append("there is an object type " + q(typeName));
+      sb.append("\n");
+      for(Entry<String, List<Type>> m : type.getMandatoryFields().entrySet()) {
+        sb.append("\t required field " + q(m.getKey()));
+        for(Type t : m.getValue()) {
+          sb.append(" is a ").append(q(t.getId()));
+        }
+        sb.append("\n");
+      }
+      for(Entry<String, List<Type>> m : type.getOptionalFields().entrySet()) {
+        sb.append("\t optional field " + q(m.getKey()));
+        for(Type t : m.getValue()) {
+          sb.append(" is a ").append(q(t.getId()));
+        }
+        sb.append("\n");
+      }
+    }
+
+    return sb.toString();
+  }
+
+  private String q(String typeName) {
+    return '"' + typeName + '"';
   }
 
 }

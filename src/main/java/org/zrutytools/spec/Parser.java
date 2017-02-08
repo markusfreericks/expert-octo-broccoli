@@ -19,14 +19,19 @@ import java.util.regex.Pattern;
  */
 public class Parser {
 
-  private ParsedSpec result;
+  private EmptySyntax syntax;
+
+  public Parser(EmptySyntax syntax) {
+    this.syntax = syntax;
+  }
 
   ParsedSpec parse(Reader src) throws IOException {
     BufferedReader lines = new BufferedReader(src);
-    this.result = new ParsedSpec();
+    ParsedSpec result = new ParsedSpec();
+    syntax.setSpec(result);
 
     String line;
-    int n = 0;
+    int n = 1;
     while ((line = lines.readLine()) != null) {
       parseLine(line, n++);
     }
@@ -38,26 +43,40 @@ public class Parser {
 
     List<Method> matchingMethods = new ArrayList<>();
 
-    for (Method m : getClass().getDeclaredMethods()) {
+    String cleaned = cleanLine(line);
+
+    for (Method m : syntax.getClass().getMethods()) {
       Syntax syntax = m.getAnnotation(Syntax.class);
       if (syntax != null) {
-        System.out.println("testing syntax " + syntax);
-        if (matches(syntax.value(), line)) {
+        if (matches(syntax.value(), cleaned)) {
           matchingMethods.add(m);
 
-          addRule(syntax.value(), line, m);
+          addRule(syntax.value(), cleaned, m);
         }
-      } else {
-        System.out.println("no syntax for " + m);
       }
     }
     // every line must match exactly one method
     if (matchingMethods.isEmpty()) {
-      throw new IllegalArgumentException("line " + lineNo + " does not match any method");
+      throw new IllegalArgumentException("line " + lineNo + " does not match any method: `" + cleaned + "`");
     }
     if (matchingMethods.size() > 1) {
       throw new IllegalArgumentException("line " + lineNo + " matches " + matchingMethods.size() + " methods: " + matchingMethods);
     }
+  }
+
+  /**
+   * entferne tabs und mehrfach-leerzeichen; entferne leerzeichen an den enden
+   *
+   * @param line
+   *          non-null String
+   * @return cleaned up String
+   */
+  private String cleanLine(String line) {
+    String r = line.replaceAll("\\s+", " ");
+    r = r.replaceAll("^ ", "");
+    r = r.replaceAll(" $", "");
+    r = r.replaceAll("\\.$", "");
+    return r;
   }
 
   private void addRule(String value, String line, Method m) {
@@ -84,7 +103,7 @@ public class Parser {
       }
     }
     try {
-      m.invoke(this, params);
+      m.invoke(syntax, params);
     } catch (Exception ex) {
       throw new IllegalArgumentException("unable to parse line `" + line + "` against syntax `" + value + "`", ex);
     }
@@ -102,43 +121,12 @@ public class Parser {
   }
 
   /**
-   * ignore comments
-   *
+   * unquote
+   * @param id
    * @return
    */
-  @Syntax("#.*")
-  void parseComment() {
-    // NOP
-  }
-
-  /**
-   * ignore empty lines
-   *
-   * @return
-   */
-  @Syntax(" *")
-  void parseEmpty() {
-    // NOP
-  }
-
-  /**
-   *
-   * @param name
-   * @return a type definition and a name definition
-   */
-  @Syntax("the document contains an object called (.*)")
-  void announceDocumentName(String name) {
-    result.addValidatorForType(Types.TYPE_DOCUMENT, new BaseTypValidator(Types.TYPE_OBJECT));
-  }
-
-  @Syntax("the (.+) MUST contain a field (.+) that contains a list of (.+) elements.")
-  void announceFieldElement(String objectType, String fieldName, String subObjectName) {
-    result.addValidatorForType(objectType, new FieldTypValidator(fieldName, subObjectName));
-  }
-
-  @Syntax("a (.+) MUST contain a field (.+) that contains a unique (.+) string.")
-  void announceUniqueElement(String objectType, String fieldName, String idName) {
-    result.addValidatorForType(objectType, new FieldTypValidator(fieldName, Types.TYPE_STRING));
+  String unq(String id) {
+    return id.replace("\"", "");
   }
 
 }

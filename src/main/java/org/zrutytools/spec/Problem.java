@@ -2,27 +2,40 @@ package org.zrutytools.spec;
 
 public class Problem {
 
-	String path;
-	String error;
-	String rule;
+  public enum Kind {
+    UNEXPECTED_TYPE("object has unexpected type"), MISSING_PROPERTY("property missing"), EMPTY_LIST("list must not be empty"), NULL_PROPERTY("property must not be null");
 
-	public Problem(String path, String error) {
-		this.path = path;
-		this.error = error;
-	}
+    private String message;
+    Kind(String msg){
+      this.message = msg;
+    }
+    public String getMessage() {
+      return message;
+    }
+  }
 
-	/**
-	 * @return the path to the offending element
-	 */
-	public String getPath() {
-		return path;
-	}
+  Kind kind;
+  Object ob;
+  String error;
 
-	/**
-	 * @return what kind of problem/violation exists
-	 */
-	public String getError() {
-		return error;
-	}
+  public Problem(Kind kind, Object ob, String error) {
+    this.kind = kind;
+    this.ob = ob;
+    this.error = error;
+  }
+
+  /**
+   * @return the offending object
+   */
+  public Object getOb() {
+    return ob;
+  }
+
+  /**
+   * @return what kind of problem/violation exists
+   */
+  public String getError() {
+    return error;
+  }
 
 }

@@ -12,12 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ParserTest {
 
-  private ParsedSpec spec;
+  private static ParsedSpec spec1;
 
   /**
    * the empty spec contains no constraints, and therefore allows any object
@@ -25,27 +25,30 @@ public class ParserTest {
   @Test
   public void testThatEmptySpecAllowsEverything() throws IOException {
 
-    Parser p = new Parser();
+    Parser p = new Parser(new Spec1Syntax());
     ParsedSpec emptySpec = p.parse(new StringReader(""));
 
-    assertFalse(emptySpec.validate(null).hasProblems());
-    assertFalse(emptySpec.validate(1).hasProblems());
-    assertFalse(emptySpec.validate("test").hasProblems());
-    assertFalse(emptySpec.validate(true).hasProblems());
-    assertFalse(emptySpec.validate(new ArrayList()).hasProblems());
-    assertFalse(emptySpec.validate(new HashMap()).hasProblems());
+    assertFalse(emptySpec.validateDocument(null).hasProblems());
+    assertFalse(emptySpec.validateDocument(1).hasProblems());
+    assertFalse(emptySpec.validateDocument("test").hasProblems());
+    assertFalse(emptySpec.validateDocument(true).hasProblems());
+    assertFalse(emptySpec.validateDocument(new ArrayList()).hasProblems());
+    assertFalse(emptySpec.validateDocument(new HashMap()).hasProblems());
 
   }
 
-  @Before
-  public void setup() throws UnsupportedEncodingException, IOException {
+  @BeforeClass
+  public static void setup() throws UnsupportedEncodingException, IOException {
 
-    InputStream is = getClass().getResourceAsStream("spec-1.txt");
+    InputStream is = ParsedSpec.class.getResourceAsStream("spec-1.txt");
     assertNotNull(is);
 
-    Parser p = new Parser();
-    this.spec = p.parse(new InputStreamReader(is, "utf-8"));
-    assertNotNull(spec);
+    Parser p = new Parser(new Spec1Syntax());
+    spec1 = p.parse(new InputStreamReader(is, "utf-8"));
+    assertNotNull(spec1);
+
+    System.out.println("*** parsed spec: ***\n" + spec1);
+
   }
 
   @Test
@@ -53,18 +56,23 @@ public class ParserTest {
 
     ValidationResult vr;
 
-    // falscher typ: null
-    vr = spec.validate(null);
-    assertTrue(vr.hasProblems());
+    vr = spec1.validateDocument(null);
+    expectProblem("falscher typ: null", vr);
 
-    // falscher typ: number
-    vr = spec.validate(42);
-    assertTrue(vr.hasProblems());
+    vr = spec1.validateDocument(42);
+    expectProblem("falscher typ: number", vr);
 
-    // falscher typ: liste
-    vr = spec.validate(new ArrayList<>());
-    assertTrue(vr.hasProblems());
+    vr = spec1.validateDocument(new ArrayList<>());
+    expectProblem("falscher typ: List", vr);
 
+  }
+
+  private void expectProblem(String what, ValidationResult vr) {
+    System.out.println("expect problem: " + what);
+    System.out.println("found: " + vr);
+    if(! vr.hasProblems()) {
+      fail("expected problem: " + what);
+    }
   }
 
   @Test
@@ -72,18 +80,20 @@ public class ParserTest {
 
     Map<String, Object> doc = new HashMap<>();
     List<Object> nodes = new ArrayList<>();
-    doc.put("list", nodes);
 
     ValidationResult vr;
 
     // richtiger typ: object. fehlendes feld: "list"
-    vr = spec.validate(new HashMap<>());
-    assertTrue(vr.hasProblems());
+    vr = spec1.validateDocument(doc);
+    expectProblem("fehlendes feld: list", vr);
 
-    // formal erst einmal richtig
-    vr = spec.validate(doc);
-    assertFalse(vr.hasProblems());
+    doc.put("list", nodes);
+
+    // sollte richtig sein
+    vr = spec1.validateDocument(doc);
+    expectProblem("es fehlt ein list element", vr);
 
   }
+
 
 }
