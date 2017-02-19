@@ -32,8 +32,8 @@ public class ParserTest {
     assertFalse(emptySpec.validateDocument(1).hasProblems());
     assertFalse(emptySpec.validateDocument("test").hasProblems());
     assertFalse(emptySpec.validateDocument(true).hasProblems());
-    assertFalse(emptySpec.validateDocument(new ArrayList()).hasProblems());
-    assertFalse(emptySpec.validateDocument(new HashMap()).hasProblems());
+    assertFalse(emptySpec.validateDocument(new ArrayList<>()).hasProblems());
+    assertFalse(emptySpec.validateDocument(new HashMap<>()).hasProblems());
 
   }
 
