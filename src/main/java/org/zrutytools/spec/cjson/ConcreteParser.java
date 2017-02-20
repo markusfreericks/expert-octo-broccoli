@@ -15,7 +15,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
 /**
- * JSON parser that creates concrete objects
+ * JSON parser that creates concrete syntax tree: every parsed element has positional elements (start/end line and char position)
+ *
+ * this is implemented by using the jackson {@link JsonParser} and observing the {@link JsonLocation} at each parse point.
  *
  */
 public class ConcreteParser {
@@ -23,52 +25,55 @@ public class ConcreteParser {
 	private JsonParser jp;
 
 	public ConcreteParser(String src) throws JsonParseException, IOException {
-		// jackson seems to have an error: when you parse a string like "3.14159265", the start location reported a the sole token will be wildly behind the real position. add a space and everything is fine.
-		this(new ByteArrayInputStream((src + " ").getBytes("utf-8")));
+		this(new ByteArrayInputStream((src).getBytes("utf-8")));
 	}
-	
+
 	public ConcreteParser(InputStream src) throws JsonParseException, IOException {
-		
-		 JsonFactory jsonFactory = new JsonFactory(); 
+
+		 JsonFactory jsonFactory = new JsonFactory();
 		 this.jp = jsonFactory.createParser(src);
-		 
+
 	}
 
 	public ConcreteNode parse() throws IOException {
 		JsonToken token = jp.nextToken();
 		return parseToken(token);
-	
+
 	}
 
 	static int NULL_LEN = 4;
 	static int TRUE_LEN = 4;
 	static int FALSE_LEN = 5;
-	
-	
+
+
 	private ConcreteNode parseToken(JsonToken token) throws IOException {
 		JsonLocation loc = jp.getCurrentLocation();
-		int startLine = loc.getLineNr();
-		int startChar = loc.getColumnNr();
+		// the current location is the location *after* recognizing the token
+		// therefore the "current" columnNr is one *past* the token
+		// and the start of the token is determined by going back "len" chars
 		int len = jp.getTextLength();
-		int endLine = startLine;
-		int endChar = startChar + len;
+		int startLine = loc.getLineNr();
+		int startChar = loc.getColumnNr()  - len ;
+		int endLine = loc.getLineNr();
+		int endChar = loc.getColumnNr()-1;
 		switch(token){
 		case START_ARRAY:
 			return parseArray();
 		case START_OBJECT:
 			return parseObject();
 		case VALUE_NULL:
-			return new ConcreteValue<Object>(startLine, startChar-NULL_LEN, endLine, endChar-NULL_LEN-1, null);
+			return new ConcreteValue<>(startLine, startChar, endLine, endChar, null);
 		case VALUE_TRUE:
-			return new ConcreteValue<Boolean>(startLine, startChar-TRUE_LEN, endLine, endChar-TRUE_LEN-1, Boolean.TRUE);
+			return new ConcreteValue<>(startLine, startChar, endLine, endChar, Boolean.TRUE);
 		case VALUE_FALSE:
-			return new ConcreteValue<Boolean>(startLine, startChar-FALSE_LEN, endLine, endChar-FALSE_LEN-1, Boolean.FALSE);
+			return new ConcreteValue<>(startLine, startChar, endLine, endChar, Boolean.FALSE);
 		case VALUE_NUMBER_FLOAT:
-			return new ConcreteValue<Double>(startLine, startChar - len, endLine, startChar-1, jp.getDoubleValue());
+			return new ConcreteValue<>(startLine, startChar, endLine, endChar, jp.getDoubleValue());
 		case VALUE_NUMBER_INT:
-			return new ConcreteValue<Long>(startLine, startChar - len, endLine, startChar-1, jp.getLongValue());
+			return new ConcreteValue<>(startLine, startChar, endLine, endChar, jp.getLongValue());
 		case VALUE_STRING:
-			return new ConcreteValue<String>(startLine, startChar-1, endLine, endChar-1, jp.getText());
+		    // for a string, everything is different: the parser returns the VALUE_STRING after reading the starting quote
+			return new ConcreteValue<>(startLine, loc.getColumnNr()-1, endLine, loc.getColumnNr()+len, jp.getText());
 		default:
 			throw new IllegalArgumentException("unable to parse token of type " + token + " at " + loc);
 		}
@@ -92,7 +97,7 @@ public class ConcreteParser {
 			values.put(key, value);
 			token = jp.nextToken();
 		}
-		
+
 		JsonLocation endLoc = jp.getCurrentLocation();
 
 		return new ConcreteObject(startLoc.getLineNr(), startLoc.getColumnNr()-1, endLoc.getLineNr(), endLoc.getColumnNr()-1, values);
@@ -108,9 +113,9 @@ public class ConcreteParser {
 			values.add(parseToken(token));
 			token = jp.nextToken();
 		}
-		
+
 		JsonLocation endLoc = jp.getCurrentLocation();
-		
+
 		return new ConcreteList(startLoc.getLineNr(), startLoc.getColumnNr()-1, endLoc.getLineNr(), endLoc.getColumnNr()-1, values);
 	}
 }

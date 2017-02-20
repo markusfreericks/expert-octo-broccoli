@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.zrutytools.spec.ObjectContext;
 import org.zrutytools.spec.Problem;
-import org.zrutytools.spec.Problem.Kind;
 
 public class ListType implements Type {
 

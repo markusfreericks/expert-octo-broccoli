@@ -7,7 +7,6 @@ import java.util.function.Predicate;
 
 import org.zrutytools.spec.ObjectContext;
 import org.zrutytools.spec.Problem;
-import org.zrutytools.spec.Problem.Kind;
 
 public class PredicateType implements Type {
 
