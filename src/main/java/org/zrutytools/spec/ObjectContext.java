@@ -2,6 +2,11 @@ package org.zrutytools.spec;
 
 import org.zrutytools.spec.types.Type;
 
+/**
+ * holds an object and its context
+ * @author mfx
+ *
+ */
 public class ObjectContext {
 
   // path relative to parent

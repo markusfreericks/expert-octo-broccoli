@@ -2,15 +2,15 @@ package org.zrutytools.spec.cjson;
 
 import java.util.List;
 
-public class ConcreteList extends ConcreteNode  {
+public class ConcreteList extends SourceLocation  {
 
-	List<ConcreteNode> nodes;
+	List<SourceLocation> nodes;
 
-	public List<ConcreteNode> getNodes() {
+	public List<SourceLocation> getNodes() {
 		return nodes;
 	}
 
-	public ConcreteList(int startLine, int startChar, int endLine, int endChar, List<ConcreteNode> nodes) {
+	public ConcreteList(int startLine, int startChar, int endLine, int endChar, List<SourceLocation> nodes) {
 		super(startLine, startChar, endLine, endChar);
 		this.nodes = nodes;
 	}

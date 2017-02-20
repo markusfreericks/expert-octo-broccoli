@@ -1,6 +1,6 @@
 package org.zrutytools.spec.cjson;
 
-public class ConcreteValue<T> extends ConcreteNode {
+public class ConcreteValue<T> extends SourceLocation {
 
 	T value;
 	

@@ -2,6 +2,8 @@ package org.zrutytools.spec.cjson;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 
 public class ConcreteParserTest {
@@ -15,7 +17,7 @@ public class ConcreteParserTest {
     // alles fängt in zeile 3 an
     String SAMPLE = "   \"hello\"       ";
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
     assertTrue(nd instanceof ConcreteValue);
     ConcreteValue<?> cs = (ConcreteValue<?>) nd;
 
@@ -24,7 +26,7 @@ public class ConcreteParserTest {
     assertEquals("hello", cs.getValue());
   }
 
-  private void displayRegion(ConcreteNode nd, String text) {
+  private void displayRegion(SourceLocation nd, String text) {
     String carets = "";
     StringBuilder digits = new StringBuilder();
     StringBuilder digits10 = new StringBuilder();
@@ -50,7 +52,7 @@ public class ConcreteParserTest {
 
     String SAMPLE = "null";
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
     assertTrue(nd instanceof ConcreteValue);
     ConcreteValue<?> cs = (ConcreteValue<?>) nd;
 
@@ -64,7 +66,7 @@ public class ConcreteParserTest {
 
     String SAMPLE = " null ";
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
     assertTrue(nd instanceof ConcreteValue);
     ConcreteValue<?> cs = (ConcreteValue<?>) nd;
 
@@ -78,7 +80,7 @@ public class ConcreteParserTest {
 
     String SAMPLE = "true";
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
     assertTrue(nd instanceof ConcreteValue);
     ConcreteValue<?> cs = (ConcreteValue<?>) nd;
 
@@ -92,7 +94,7 @@ public class ConcreteParserTest {
 
     String SAMPLE = "  true    ";
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
     assertTrue(nd instanceof ConcreteValue);
     ConcreteValue<?> cs = (ConcreteValue<?>) nd;
 
@@ -106,7 +108,7 @@ public class ConcreteParserTest {
 
     String SAMPLE = "false";
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
     assertTrue(nd instanceof ConcreteValue);
     ConcreteValue<?> cs = (ConcreteValue<?>) nd;
 
@@ -121,7 +123,7 @@ public class ConcreteParserTest {
     String SAMPLE = "42";
 
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
     assertTrue(nd instanceof ConcreteValue);
     ConcreteValue<?> cs = (ConcreteValue<?>) nd;
 
@@ -136,7 +138,7 @@ public class ConcreteParserTest {
     String SAMPLE = "   8978    ";
 
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
     assertTrue(nd instanceof ConcreteValue);
     ConcreteValue<?> cs = (ConcreteValue<?>) nd;
 
@@ -150,7 +152,7 @@ public class ConcreteParserTest {
 
     String SAMPLE = "3.14159265";
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
     assertTrue(nd instanceof ConcreteValue);
     ConcreteValue<?> cs = (ConcreteValue<?>) nd;
 
@@ -164,7 +166,7 @@ public class ConcreteParserTest {
 
     String SAMPLE = "[1234, true , false, \"hello\", 3.14159265, null]";
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
 
     displayRegion(nd, SAMPLE);
 
@@ -205,13 +207,14 @@ public class ConcreteParserTest {
 
     String SAMPLE = "      {        }        ";
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
 
     displayRegion(nd, SAMPLE);
 
     assertTrue(nd instanceof ConcreteObject);
     ConcreteObject ob = (ConcreteObject) nd;
     assertTrue(ob.getElements().isEmpty());
+    assertTrue(ob.getKeys().isEmpty());
   }
 
   @Test
@@ -219,7 +222,7 @@ public class ConcreteParserTest {
 
     String SAMPLE = "{  \"a\" : 4321, \"b\" : {  }      }";
     ConcreteParser p = new ConcreteParser(SAMPLE);
-    ConcreteNode nd = p.parse();
+    SourceLocation nd = p.parse();
 
     displayRegion(nd, SAMPLE);
 
@@ -238,6 +241,8 @@ public class ConcreteParserTest {
     assertTrue(b.getElements().isEmpty());
 
     displayRegion(b, SAMPLE);
+
+    assertEquals(Arrays.asList("a", "b"), ob.getKeys());
 
   }
 

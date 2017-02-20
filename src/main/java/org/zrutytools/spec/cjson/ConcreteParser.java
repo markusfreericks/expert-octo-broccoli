@@ -35,7 +35,7 @@ public class ConcreteParser {
 
 	}
 
-	public ConcreteNode parse() throws IOException {
+	public SourceLocation parse() throws IOException {
 		JsonToken token = jp.nextToken();
 		return parseToken(token);
 
@@ -46,7 +46,7 @@ public class ConcreteParser {
 	static int FALSE_LEN = 5;
 
 
-	private ConcreteNode parseToken(JsonToken token) throws IOException {
+	private SourceLocation parseToken(JsonToken token) throws IOException {
 		JsonLocation loc = jp.getCurrentLocation();
 		// the current location is the location *after* recognizing the token
 		// therefore the "current" columnNr is one *past* the token
@@ -82,7 +82,9 @@ public class ConcreteParser {
 	private ConcreteObject parseObject() throws IOException {
 		JsonLocation startLoc = jp.getCurrentLocation();
 
-		Map<ConcreteValue<?>, ConcreteNode> values = new HashMap<>();
+		Map<ConcreteValue<?>, SourceLocation> map = new HashMap<>();
+		List<String> keys = new ArrayList<>();
+
 
 		JsonToken token = jp.nextToken();
 		while(token != JsonToken.END_OBJECT){
@@ -90,23 +92,24 @@ public class ConcreteParser {
 				throw new IllegalStateException("expected FIELD_NAME or END_OBJECT, got " + token);
 			}
 			String fieldName = jp.getText();
+			keys.add(fieldName);
 			JsonLocation loc = jp.getCurrentLocation();
 
 			ConcreteValue<String> key = new ConcreteValue<>(loc.getLineNr(), loc.getColumnNr(), loc.getLineNr(), loc.getColumnNr() + fieldName.length(), fieldName);
-			ConcreteNode  value = parse();
-			values.put(key, value);
+			SourceLocation  value = parse();
+			map.put(key, value);
 			token = jp.nextToken();
 		}
 
 		JsonLocation endLoc = jp.getCurrentLocation();
 
-		return new ConcreteObject(startLoc.getLineNr(), startLoc.getColumnNr()-1, endLoc.getLineNr(), endLoc.getColumnNr()-1, values);
+		return new ConcreteObject(startLoc.getLineNr(), startLoc.getColumnNr()-1, endLoc.getLineNr(), endLoc.getColumnNr()-1, keys, map);
 	}
 
 	private ConcreteList parseArray() throws IOException {
 		JsonLocation startLoc = jp.getCurrentLocation();
 
-		List<ConcreteNode> values = new ArrayList<>();
+		List<SourceLocation> values = new ArrayList<>();
 
 		JsonToken token = jp.nextToken();
 		while(token != JsonToken.END_ARRAY){

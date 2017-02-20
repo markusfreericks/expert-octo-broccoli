@@ -1,6 +1,6 @@
 package org.zrutytools.spec.cjson;
 
-public abstract class ConcreteNode {
+public class SourceLocation {
 	int startLine;
 	int endLine;
 	int startChar;
@@ -17,13 +17,11 @@ public abstract class ConcreteNode {
 	public int getEndChar() {
 		return endChar;
 	}
-	public ConcreteNode(int startLine, int startChar, int endLine, int endChar) {
+	public SourceLocation(int startLine, int startChar, int endLine, int endChar) {
 		this.startLine = startLine;
 		this.startChar = startChar;
 		this.endLine = endLine;
 		this.endChar = endChar;
 	}
-	
-	
-	
+
 }
