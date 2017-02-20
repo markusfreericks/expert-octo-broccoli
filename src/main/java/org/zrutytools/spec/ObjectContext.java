@@ -1,5 +1,12 @@
 package org.zrutytools.spec;
 
+import java.util.List;
+import java.util.Map;
+
+import org.zrutytools.spec.cjson.ConcreteList;
+import org.zrutytools.spec.cjson.ConcreteObject;
+import org.zrutytools.spec.cjson.ConcreteValue;
+import org.zrutytools.spec.cjson.SourceLocation;
 import org.zrutytools.spec.types.Type;
 
 /**
@@ -18,11 +25,41 @@ public class ObjectContext {
   // expected type of object
   private Type expectedType;
 
+  private SourceLocation location;
+
   public ObjectContext(String path, Type expectedType, Object object, ObjectContext parent) {
-    this.object = object;
+    this.object = unwrap(object);
+    this.location = locate(object);
     this.path = path;
     this.parent = parent;
     this.expectedType = expectedType;
+  }
+
+  private SourceLocation locate(Object x) {
+    if(x instanceof SourceLocation) {
+      return (SourceLocation) x;
+    }
+    return SourceLocation.UNKNOWN;
+  }
+
+  public SourceLocation getLocation() {
+    return location;
+  }
+
+  private Object unwrap(Object x) {
+    if(x instanceof ConcreteValue){
+      return ((ConcreteValue) x).getValue();
+    }
+    if(x instanceof ConcreteList){
+      return ((ConcreteList) x).getNodes();
+    }
+    if(x instanceof ConcreteObject){
+      return ((ConcreteObject) x).getWithUnwrappedKeys();
+    }
+    if(x instanceof String || x instanceof Number || x instanceof Boolean || x instanceof List || x instanceof Map || x == null){
+      return x;
+    }
+    throw new IllegalArgumentException("don't know how to unwrap " + x.getClass().getSimpleName() + " " + x);
   }
 
   public Object getObject() {
@@ -75,4 +112,4 @@ public class ObjectContext {
     }
     return parent.lookupParent(type);
   }
-}
+  }

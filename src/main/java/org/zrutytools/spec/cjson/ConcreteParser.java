@@ -41,11 +41,6 @@ public class ConcreteParser {
 
 	}
 
-	static int NULL_LEN = 4;
-	static int TRUE_LEN = 4;
-	static int FALSE_LEN = 5;
-
-
 	private SourceLocation parseToken(JsonToken token) throws IOException {
 		JsonLocation loc = jp.getCurrentLocation();
 		// the current location is the location *after* recognizing the token

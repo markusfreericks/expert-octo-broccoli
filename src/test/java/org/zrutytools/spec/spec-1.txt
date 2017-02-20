@@ -3,4 +3,5 @@
 the document is object of type "ExampleResult"
 an ExampleResult MUST contain a field "list" that contains a list of "ExampleNode" elements
 an ExampleNode MUST contain a nonempty string field "id"
+an ExampleNode SHOULD contain a nonempty string field "name"
 

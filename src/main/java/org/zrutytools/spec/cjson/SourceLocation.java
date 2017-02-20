@@ -24,4 +24,18 @@ public class SourceLocation {
 		this.endChar = endChar;
 	}
 
+	@Override
+	public String toString() {
+	  if(startLine == endLine) {
+	    if(startLine == -1) {
+	      return "";
+	    }
+	    return startLine + ":" + startChar + ".." + endChar;
+	  }
+	  return startLine + ":" + startChar + ".." + endLine + ":" + endChar;
+	}
+
+	// needed when there is no known location
+	public static final SourceLocation UNKNOWN = new SourceLocation(-1, -1, -1, -1);
+
 }

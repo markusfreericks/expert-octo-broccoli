@@ -41,4 +41,8 @@ public class ConcreteObject extends SourceLocation  {
 		return withUnwrappedKeys.get(key);
 	}
 
+	public Map<String, SourceLocation> getWithUnwrappedKeys() {
+      return withUnwrappedKeys;
+    }
+
 }

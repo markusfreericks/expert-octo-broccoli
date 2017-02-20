@@ -26,6 +26,13 @@ public class Spec1Syntax extends EmptySyntax {
     addMandatoryField(t, fieldName, listOfT);
   }
 
+
+  @Syntax("an? (.+) SHOULD contain a nonempty string field (.+)")
+  public void announceOptionalStringFieldElement(String objectType, String fieldName) {
+    NodeType t = lookupType(objectType);
+    addOptionalField(t, fieldName, PrimitiveType.STRING);
+  }
+
   /*
    * all-spaces should also be considered empty
    */
